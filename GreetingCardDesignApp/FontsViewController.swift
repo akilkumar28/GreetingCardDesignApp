@@ -7,8 +7,11 @@
 //
 
 import UIKit
+import MobileCoreServices
 
-class FontsViewController: UITableViewController {
+class FontsViewController: UITableViewController,UITableViewDragDelegate {
+    
+    
     
     
     let fonts = UIFont.familyNames.sorted()
@@ -16,8 +19,8 @@ class FontsViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        tableView.dragDelegate  = self
         
-
     }
     
     
@@ -32,5 +35,16 @@ class FontsViewController: UITableViewController {
         cell.textLabel?.font = UIFont(name: fonts[indexPath.row], size: 18)
         return cell
     }
+    
+    func tableView(_ tableView: UITableView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+        
+        let font = fonts[indexPath.row]
+        guard let fontData = font.data(using: .utf8) else {return []}
+        let itemProvider = NSItemProvider(item: fontData as NSData, typeIdentifier: kUTTypePlainText as String)
+        let dragItem = UIDragItem(itemProvider: itemProvider)
+        return [dragItem]
+    }
+    
+    
 
 }

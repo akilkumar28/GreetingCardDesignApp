@@ -40,6 +40,42 @@ class ViewController: UIViewController,UICollectionViewDelegate,UICollectionView
         postCard.addInteraction(interaction)
         setupColors()
         renderPostcard()
+        
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapPressed))
+        postCard.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc fileprivate func tapPressed(gesture:UITapGestureRecognizer){
+        let location = gesture.location(in: postCard)
+        var changeTop = true
+        if location.y < self.postCard.bounds.midY {
+            changeTop = true
+        } else {
+            changeTop = false
+        }
+        let alert = UIAlertController(title: "Enter the Name", message: "Please enter the text you wish to change", preferredStyle: .alert)
+        
+        alert.addTextField { (textField) in
+            if changeTop{
+                textField.text = self.topText
+            }else{
+                textField.text = self.bottomText
+            }
+        }
+        let action1 = UIAlertAction(title: "Change", style: .default) { (action) in
+            guard let text = alert.textFields?[0].text else {return}
+            if changeTop {
+                self.topText = text
+            }else{
+                self.bottomText = text
+            }
+            self.renderPostcard()
+        }
+        let action2 = UIAlertAction(title: "Cancel", style: .destructive, handler: nil)
+        alert.addAction(action1)
+        alert.addAction(action2)
+        present(alert, animated: true, completion: nil)
     }
     
     
@@ -127,6 +163,15 @@ class ViewController: UIViewController,UICollectionViewDelegate,UICollectionView
         let location = session.location(in: postCard)
         if session.hasItemsConforming(toTypeIdentifiers: [kUTTypePlainText as String]) {
             //handle text
+            session.loadObjects(ofClass: NSString.self, completion: { (items) in
+                guard let fontName = items.first as? String else {return}
+                if location.y < self.postCard.bounds.midY {
+                    self.topFontName = fontName
+                } else {
+                    self.bottomFontName = fontName
+                }
+                self.renderPostcard()
+            })
             
             
         } else {
