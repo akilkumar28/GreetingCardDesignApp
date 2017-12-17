@@ -7,9 +7,9 @@
 //
 
 import UIKit
+import MobileCoreServices
 
-class ViewController: UIViewController,UICollectionViewDelegate,UICollectionViewDataSource {
-    
+class ViewController: UIViewController,UICollectionViewDelegate,UICollectionViewDataSource,UICollectionViewDragDelegate,UIDropInteractionDelegate {
     
     var colors = [UIColor]()
     
@@ -20,7 +20,7 @@ class ViewController: UIViewController,UICollectionViewDelegate,UICollectionView
     
     //properties
     var image:UIImage?
-    
+
     var topText = "Visit London"
     var topFontName = "Helvetica Neue"
     var topColor = UIColor.white
@@ -34,6 +34,10 @@ class ViewController: UIViewController,UICollectionViewDelegate,UICollectionView
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let interaction = UIDropInteraction(delegate: self)
+        mycollectionView.dragDelegate = self
+        postCard.isUserInteractionEnabled = true
+        postCard.addInteraction(interaction)
         setupColors()
         renderPostcard()
     }
@@ -104,6 +108,39 @@ class ViewController: UIViewController,UICollectionViewDelegate,UICollectionView
         cell.layer.borderWidth = 1
         cell.layer.cornerRadius = 5
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+        
+        let color = colors[indexPath.item]
+        let item = NSItemProvider(object: color)
+        let dragItem = UIDragItem(itemProvider: item)
+        return [dragItem]
+    }
+    
+    func dropInteraction(_ interaction: UIDropInteraction, sessionDidUpdate session: UIDropSession) -> UIDropProposal {
+        return UIDropProposal(operation: .copy)
+    }
+    
+    func dropInteraction(_ interaction: UIDropInteraction, performDrop session: UIDropSession) {
+        
+        let location = session.location(in: postCard)
+        if session.hasItemsConforming(toTypeIdentifiers: [kUTTypePlainText as String]) {
+            //handle text
+            
+            
+        } else {
+            // handle color
+            session.loadObjects(ofClass: UIColor.self, completion: { (items) in
+                guard let color = items.first as? UIColor else {return}
+                if location.y < self.postCard.bounds.midY {
+                    self.topColor = color
+                } else {
+                    self.bottomColor = color
+                }
+                self.renderPostcard()
+            })
+        }
     }
 
 }
