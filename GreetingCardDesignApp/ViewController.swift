@@ -9,7 +9,7 @@
 import UIKit
 import MobileCoreServices
 
-class ViewController: UIViewController,UICollectionViewDelegate,UICollectionViewDataSource,UICollectionViewDragDelegate,UIDropInteractionDelegate {
+class ViewController: UIViewController,UICollectionViewDelegate,UICollectionViewDataSource,UICollectionViewDragDelegate,UIDropInteractionDelegate,UIDragInteractionDelegate {
     
     var colors = [UIColor]()
     
@@ -34,10 +34,16 @@ class ViewController: UIViewController,UICollectionViewDelegate,UICollectionView
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let interaction = UIDropInteraction(delegate: self)
+        title = "Edit the PostCard"
+        
+        splitViewController?.view.backgroundColor = UIColor.lightGray
+        
+        let interaction1 = UIDropInteraction(delegate: self)
+        let interaction2 = UIDragInteraction(delegate: self)
         mycollectionView.dragDelegate = self
         postCard.isUserInteractionEnabled = true
-        postCard.addInteraction(interaction)
+        postCard.addInteraction(interaction1)
+        postCard.addInteraction(interaction2)
         setupColors()
         renderPostcard()
         
@@ -174,7 +180,16 @@ class ViewController: UIViewController,UICollectionViewDelegate,UICollectionView
             })
             
             
-        } else {
+        } else if session.hasItemsConforming(toTypeIdentifiers: [kUTTypeImage as String]) {
+            session.loadObjects(ofClass: UIImage.self, completion: { (items) in
+                guard let draggedImage = items.first as? UIImage else {return}
+                self.image = draggedImage
+                self.renderPostcard()
+            })
+            
+        }
+    
+        else {
             // handle color
             session.loadObjects(ofClass: UIColor.self, completion: { (items) in
                 guard let color = items.first as? UIColor else {return}
@@ -187,6 +202,14 @@ class ViewController: UIViewController,UICollectionViewDelegate,UICollectionView
             })
         }
     }
+    
+    func dragInteraction(_ interaction: UIDragInteraction, itemsForBeginning session: UIDragSession) -> [UIDragItem] {
+        guard let draggedImage = postCard.image else {return []}
+        let itemProvider = NSItemProvider(object: draggedImage)
+        let dragItem = UIDragItem(itemProvider: itemProvider)
+        return [dragItem]
+    }
+    
 
 }
 

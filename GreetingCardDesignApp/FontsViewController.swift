@@ -20,6 +20,7 @@ class FontsViewController: UITableViewController,UITableViewDragDelegate {
         super.viewDidLoad()
         
         tableView.dragDelegate  = self
+        title = "Fonts"
         
     }
     
